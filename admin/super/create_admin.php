@@ -159,7 +159,7 @@ admin_header($page_title);
                                         <label for="department" class="form-label">Department</label>
                                         <select class="form-select" id="department" name="department" required>
                                             <option value="" disabled selected>Select Department</option>
-                                            <option value="CCS" <?php echo (isset($_POST['department']) && $_POST['department'] === 'CCS') ? 'selected' : ''; ?>>College of Computer Studies</option>
+                                            <option value="CCS" <?php echo (isset($_POST['department']) && $_POST['department'] === 'CCS') ? 'selected' : ''; ?>>College of Computing Studies</option>
                                             <option value="COE" <?php echo (isset($_POST['department']) && $_POST['department'] === 'COE') ? 'selected' : ''; ?>>College of Engineering</option>
                                             <option value="CAS" <?php echo (isset($_POST['department']) && $_POST['department'] === 'CAS') ? 'selected' : ''; ?>>College of Arts and Sciences</option>
                                         </select>
