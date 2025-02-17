@@ -137,40 +137,40 @@ class Auth {
         if (!is_array($roles)) {
             $roles = [$roles];
         }
-
-        if (!isset($_SESSION['user_id']) || !isset($_SESSION['user_role'])) {
+    
+        if (!isset($_SESSION['user_id'])) {
             $_SESSION['intended_url'] = $_SERVER['REQUEST_URI'];
             header('Location: /php-ccs/login.php');
             exit();
         }
-
+    
         try {
             $stmt = $this->conn->prepare("
                 SELECT 
-                    u.*,
                     CASE 
                         WHEN sa.user_id IS NOT NULL THEN 'super_admin'
                         WHEN a.user_id IS NOT NULL THEN 'admin'
+                        WHEN app.user_id IS NOT NULL THEN 'applicant'
                         ELSE u.role 
                     END as role_type
                 FROM users u
                 LEFT JOIN super_admins sa ON u.id = sa.user_id
                 LEFT JOIN admins a ON u.id = a.user_id
-                WHERE u.id = ? AND u.status = 'active'
+                LEFT JOIN applicants app ON u.id = app.user_id
+                WHERE u.id = ? AND u.status IN ('active', 'approved')
                 LIMIT 1
             ");
+            
             $stmt->execute([$_SESSION['user_id']]);
-            $user = $stmt->fetch();
-            $stmt->closeCursor(); // ✅ Close result set
-
-
-            if (!$user || !in_array($user['role_type'], $roles)) {
+            $userRole = $stmt->fetchColumn(); // Fetch only the role_type value
+            
+            if (!$userRole || !in_array($userRole, $roles)) {
                 $this->logout();
                 $_SESSION['error'] = 'Access denied. Please log in with appropriate credentials.';
                 header('Location: /php-ccs/login.php');
                 exit();
             }
-
+    
             return true;
         } catch (Exception $e) {
             error_log("Role verification error: " . $e->getMessage());
@@ -178,7 +178,7 @@ class Auth {
             header('Location: /php-ccs/login.php?error=system');
             exit();
         }
-    }
+    } 
 
     public function logout() {
         if(isset($_SESSION['user_id'])) {
@@ -221,30 +221,36 @@ class Auth {
         if (!$this->isLoggedIn()) {
             return null;
         }
-
+        
         try {
+            // Updated query to include the LEFT JOIN for applicants
             $stmt = $this->conn->prepare("
                 SELECT 
                     u.*,
                     CASE 
                         WHEN sa.user_id IS NOT NULL THEN 'super_admin'
                         WHEN a.user_id IS NOT NULL THEN 'admin'
+                        WHEN app.user_id IS NOT NULL THEN 'applicant'
                         ELSE u.role 
                     END as role_type
                 FROM users u
                 LEFT JOIN super_admins sa ON u.id = sa.user_id
                 LEFT JOIN admins a ON u.id = a.user_id
-                WHERE u.id = ? AND u.status = 'active'
+                LEFT JOIN applicants app ON u.id = app.user_id
+                WHERE u.id = ? AND u.status IN ('active', 'approved')
                 LIMIT 1
             ");
+            
+            // Execute the query with the session user ID
             $stmt->execute([$_SESSION['user_id']]);
             $user = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+    
+            // If user exists, assign the role from the role_type
             if ($user) {
                 $user['role'] = $user['role_type'];
             }
-            
-            return $user;
+    
+            return $user ?: null; // Return user data or null if no user found
         } catch (Exception $e) {
             error_log("Get current user error: " . $e->getMessage());
             return null;

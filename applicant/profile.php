@@ -1,12 +1,24 @@
 <?php
+require_once '../config/config.php';
 require_once '../classes/Auth.php';
 require_once '../config/database.php';
 require_once '../includes/layout.php';
 
 $auth = new Auth();
-$auth->requireRole('applicant');
-
 $user = $auth->getCurrentUser();
+error_log("DEBUG: Session data: " . print_r($_SESSION, true));
+error_log("DEBUG: Current user: " . print_r($user, true));
+
+try {
+    $auth->requireRole('applicant');
+    error_log("DEBUG: Role verification successful.");
+} catch (Exception $e) {
+    error_log("ERROR: Role verification failed: " . $e->getMessage());
+    exit;
+}
+
+
+
 
 // Get applicant details
 $database = Database::getInstance();;
@@ -15,7 +27,21 @@ $conn = $database->getConnection();
 $query = "SELECT * FROM applicants WHERE user_id = ?";
 $stmt = $conn->prepare($query);
 $stmt->execute([$user['id']]);
-$applicant = $stmt->fetch(PDO::FETCH_ASSOC);
+$applicant = $stmt->fetch(PDO::FETCH_ASSOC) ?: []; // Ensure it's an array
+
+if (!$applicant) {
+    error_log("ERROR: No applicant record found for user ID: {$user['id']}");
+    $applicant = [
+        'first_name' => 'Unknown',
+        'last_name' => '',
+        'preferred_course' => 'N/A',
+        'contact_number' => 'Not provided',
+        'address' => 'Not provided',
+        'progress_status' => 'Registered',
+        'id' => 0,
+    ];
+}
+
 
 // Handle profile update
 $message = '';
@@ -69,11 +95,11 @@ get_sidebar('applicant');
                             <i class="bi bi-person-circle text-primary" style="font-size: 5rem;"></i>
                         </div>
                         <h5 class="mb-1"><?php echo htmlspecialchars($applicant['first_name'] . ' ' . $applicant['last_name']); ?></h5>
-                        <p class="text-muted mb-3"><?php echo ucfirst($applicant['preferred_course']); ?> Applicant</p>
+                        <p class="text-muted mb-3"><?php echo ucfirst($applicant['preferred_course'] ?? 'N/A'); ?> Applicant</p>
                         <div class="d-flex justify-content-center">
                             <span class="badge bg-primary me-2">
                                 <i class="bi bi-person-badge me-1"></i>
-                                ID: <?php echo str_pad($applicant['id'], 6, '0', STR_PAD_LEFT); ?>
+                                ID: <?php echo str_pad($applicant['id'] ?? 0, 6, '0', STR_PAD_LEFT); ?>
                             </span>
                             <span class="badge bg-success">
                                 <i class="bi bi-check-circle me-1"></i>
