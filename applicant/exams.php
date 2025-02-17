@@ -24,18 +24,46 @@ $questions = [];
 if ($exam_id) {
     try {
         // Get exam details
-        $stmt = $db->query("SELECT * FROM exams WHERE id = ?", [$exam_id]);
-        $exam = $stmt->fetch();
-        
+        $stmt = $db->prepare("SELECT * FROM exams WHERE id = ?");
+        $stmt->execute([$exam_id]);
+        $exam = $stmt->fetch(PDO::FETCH_ASSOC);
+
         if ($exam) {
             // Get exam questions
-            $stmt = $db->query("SELECT * FROM questions WHERE exam_id = ? ORDER BY id", [$exam_id]);
-            $questions = $stmt->fetchAll();
+            $stmt = $db->prepare("SELECT * FROM questions WHERE exam_id = ? ORDER BY id");
+            $stmt->execute([$exam_id]);
+            $questions = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Check if the user has already started the exam
+            $stmt = $db->prepare(
+                "SELECT started_at FROM exam_start_times WHERE applicant_id = ? AND exam_id = ?"
+            );
+            $stmt->execute([$user_id, $exam_id]);
+            $existing_start_time = $stmt->fetchColumn();
+
+            if ($existing_start_time) {
+                $started_at = $existing_start_time;
+            } else {
+                // Insert new start time if not exists
+                $stmt = $db->prepare(
+                    "INSERT INTO exam_start_times (applicant_id, exam_id, started_at) 
+                     VALUES (?, ?, NOW())"
+                );
+                $stmt->execute([$user_id, $exam_id]);
+
+                // Fetch the newly inserted start time
+                $stmt = $db->prepare(
+                    "SELECT started_at FROM exam_start_times WHERE applicant_id = ? AND exam_id = ?"
+                );
+                $stmt->execute([$user_id, $exam_id]);
+                $started_at = $stmt->fetchColumn();
+            }
         }
     } catch (Exception $e) {
         error_log("Exam Error: " . $e->getMessage());
     }
 }
+
 
 get_header('Exams');
 ?>

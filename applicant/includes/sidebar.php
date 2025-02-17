@@ -27,21 +27,44 @@ try {
         $applicant = ['status' => 'registered'];
     }
 
-    // Get exam stats
+// Get total number of available exams (only published exams that the user hasn't attempted)
+$stmt = $db->query(
+    "SELECT COUNT(*) AS total_available_exams 
+     FROM exams 
+     WHERE status = 'published' 
+     AND id NOT IN (
+         SELECT exam_id 
+         FROM exam_results 
+         WHERE applicant_id = ?
+     )",
+    [(int)$user_id]
+);
+$exam_data = $stmt->fetch();
+$total_available_exams = $exam_data['total_available_exams'];
+
+
+    // Get total number of exams attempted & average score
     $stmt = $db->query(
-        "SELECT COUNT(*) as total_exams, 
-                (SUM(score) / SUM(passing_score)) * 100 as avg_score 
+        "SELECT COUNT(*) AS total_attempted_exams, 
+                (CASE WHEN SUM(passing_score) > 0 THEN (SUM(score) / SUM(passing_score)) * 100 ELSE 0 END) AS avg_score
          FROM exam_results WHERE applicant_id = ?",
         [(int)$user_id]
     );
-    
     $exam_stats = $stmt->fetch();
+
+    // Extract values properly
+    $total_attempted_exams = $exam_stats['total_attempted_exams'];
+    $avg_score = $exam_stats['avg_score'];
+
 } catch (Exception $e) {
     error_log("Sidebar Error: " . $e->getMessage());
     $user = ['first_name' => 'User', 'last_name' => ''];
     $applicant = ['status' => 'registered'];
-    $exam_stats = ['total_exams' => 0, 'avg_score' => 0];
+    $total_available_exams = 0;
+    $total_attempted_exams = 0;
+    $avg_score = 0;
 }
+
 
 // Get current page for active menu highlighting
 $current_page = basename($_SERVER['PHP_SELF']);
@@ -84,17 +107,17 @@ $current_page = basename($_SERVER['PHP_SELF']);
                 </li>
 
                 <li class="nav-item">
-                    <a href="<?php echo BASE_URL; ?>applicant/exams.php" 
-                       class="nav-link <?php echo $current_page === 'exams.php' ? 'active' : ''; ?>">
-                        <i class="bx bxs-book"></i>
-                        <span>Exams</span>
-                        <?php if ($exam_stats['total_exams'] > 0): ?>
-                            <span class="badge bg-info rounded-pill ms-2">
-                                <?php echo $exam_stats['total_exams']; ?>
-                            </span>
-                        <?php endif; ?>
-                    </a>
-                </li>
+    <a href="<?php echo BASE_URL; ?>applicant/exams.php" 
+       class="nav-link <?php echo $current_page === 'exams.php' ? 'active' : ''; ?>">
+        <i class="bx bxs-book"></i>
+        <span>Exams</span>
+        <?php if ($total_available_exams > 0): ?>
+            <span class="badge bg-info rounded-pill ms-2">
+                <?php echo $total_available_exams; ?>
+            </span>
+        <?php endif; ?>
+    </a>
+</li>
 
                 <li class="nav-item">
                     <a href="<?php echo BASE_URL; ?>applicant/results.php" 
