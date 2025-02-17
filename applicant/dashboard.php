@@ -1,5 +1,6 @@
 <?php
 require_once '../config/config.php';
+require_once '../config/database.php';
 require_once '../classes/Auth.php';
 require_once '../includes/layout.php';
 require_once '../includes/utilities.php';
@@ -28,14 +29,16 @@ try {
     // Get applicant's exam results
     $stmt = $db->query(
         "SELECT er.*, e.title as exam_title, e.duration_minutes,
+                (SELECT SUM(q.points) FROM questions q WHERE q.exam_id = er.exam_id) AS total_points,
                 DATE_FORMAT(er.created_at, '%M %d, %Y') as completion_date
          FROM exam_results er
          JOIN exams e ON er.exam_id = e.id
-         WHERE er.user_id = ?
+         WHERE er.applicant_id = ?
          ORDER BY er.created_at DESC
          LIMIT 5",
         [$user_id]
     );
+        
     $recent_exams = $stmt->fetchAll();
 
     // Get total exams taken
@@ -44,30 +47,30 @@ try {
                 COALESCE(AVG(score), 0) as average_score,
                 COALESCE(MAX(score), 0) as highest_score
          FROM exam_results
-         WHERE user_id = ?",
+         WHERE applicant_id = ?",
         [$user_id]
-    );
+    );    
     $exam_stats = $stmt->fetch();
 
     // Get upcoming/available exams
     $stmt = $db->query(
         "SELECT e.* 
          FROM exams e
-         LEFT JOIN exam_results er ON er.exam_id = e.id AND er.user_id = ?
-         WHERE e.status = 'active' AND er.id IS NULL
+         LEFT JOIN exam_results er ON er.exam_id = e.id AND er.applicant_id = ?
+         WHERE e.status = 'published' AND er.id IS NULL
          LIMIT 3",
         [$user_id]
-    );
+    );    
     $available_exams = $stmt->fetchAll();
 
     // Get user data
     $stmt = $db->query(
-        "SELECT u.*, a.status 
-         FROM users u 
-         LEFT JOIN applicants a ON a.user_id = u.id 
+        "SELECT u.* 
+         FROM users u
          WHERE u.id = ?",
         [$user_id]
     );
+    
     $user_data = $stmt->fetch();
     
     // If no applicant record exists, create one
@@ -184,18 +187,23 @@ get_header('Dashboard');
                                             </tr>
                                         </thead>
                                         <tbody>
-                                            <?php foreach ($recent_exams as $exam): ?>
-                                                <tr>
-                                                    <td><?php echo safe_string($exam['exam_title']); ?></td>
-                                                    <td>
-                                                        <span class="badge <?php echo getScoreBadgeClass($exam['score'] ?? 0); ?>">
-                                                            <?php echo number_format($exam['score'] ?? 0, 1); ?>%
-                                                        </span>
-                                                    </td>
-                                                    <td><?php echo number_format($exam['completion_time'] ?? 0, 1); ?> min</td>
-                                                    <td><?php echo safe_string($exam['completion_date']); ?></td>
-                                                </tr>
-                                            <?php endforeach; ?>
+                                        <?php foreach ($recent_exams as $exam): ?>
+    <?php
+    $total_points = $exam['total_points'] ?? 1; // Avoid division by zero
+    $percentage_score = ($exam['score'] / $total_points) * 100;
+    ?>
+    <tr>
+        <td><?php echo safe_string($exam['exam_title']); ?></td>
+        <td>
+            <span class="badge <?php echo getScoreBadgeClass($percentage_score); ?>">
+                <?php echo number_format($percentage_score, 1); ?>%
+            </span>
+        </td>
+        <td><?php echo number_format($exam['completion_time'] ?? 0, 1); ?> min</td>
+        <td><?php echo safe_string($exam['completion_date']); ?></td>
+    </tr>
+<?php endforeach; ?>
+
                                         </tbody>
                                     </table>
                                 </div>

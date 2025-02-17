@@ -2,6 +2,7 @@
 require_once '../config/config.php';
 require_once '../classes/Auth.php';
 require_once '../includes/layout.php';
+require_once '../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -25,7 +26,7 @@ if ($exam_id) {
         
         if ($exam) {
             // Get exam questions
-            $stmt = $db->query("SELECT * FROM exam_questions WHERE exam_id = ? ORDER BY question_order", [$exam_id]);
+            $stmt = $db->query("SELECT * FROM questions WHERE exam_id = ? ORDER BY id", [$exam_id]);
             $questions = $stmt->fetchAll();
         }
     } catch (Exception $e) {
@@ -60,32 +61,39 @@ get_header('Exams');
                         <input type="hidden" name="exam_id" value="<?php echo $exam_id; ?>">
                         <input type="hidden" name="time_remaining" id="timeRemaining">
                         
-                        <?php foreach ($questions as $index => $question): ?>
-                            <div class="card mb-4">
-                                <div class="card-body">
-                                    <h5 class="card-title">Question <?php echo $index + 1; ?></h5>
-                                    <p class="card-text"><?php echo htmlspecialchars($question['question_text']); ?></p>
-                                    
-                                    <?php
-                                    // Get choices for this question
-                                    $stmt = $db->query("SELECT * FROM question_choices WHERE question_id = ? ORDER BY RAND()", [$question['id']]);
-                                    $choices = $stmt->fetchAll();
-                                    
-                                    foreach ($choices as $choice):
-                                    ?>
-                                        <div class="form-check mb-2">
-                                            <input class="form-check-input" type="radio" 
-                                                   name="answer[<?php echo $question['id']; ?>]" 
-                                                   id="choice_<?php echo $choice['id']; ?>" 
-                                                   value="<?php echo $choice['id']; ?>" required>
-                                            <label class="form-check-label" for="choice_<?php echo $choice['id']; ?>">
-                                                <?php echo htmlspecialchars($choice['choice_text']); ?>
-                                            </label>
-                                        </div>
-                                    <?php endforeach; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
+                        <?php foreach ($questions as $index => $question): 
+?>
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Question <?php echo $index + 1; ?></h5>
+            <p class="card-text"><?php echo htmlspecialchars($question['question_text']); ?></p>
+            
+            <?php
+            // Decode the options from the JSON column in the questions table
+            $choices = json_decode($question['options'], true);
+
+            if ($choices && is_array($choices)):
+                foreach ($choices as $choice_id => $choice_text):
+            ?>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="radio" 
+                               name="answer[<?php echo $question['id']; ?>]" 
+                               id="choice_<?php echo $choice_id; ?>" 
+                               value="<?php echo htmlspecialchars($choice_text); ?>" required>
+                        <label class="form-check-label" for="choice_<?php echo $choice_id; ?>">
+                            <?php echo htmlspecialchars($choice_text); ?>
+                        </label>
+                    </div>
+            <?php
+                endforeach;
+            else:
+            ?>
+                <p class="text-danger">No options available for this question.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endforeach; ?>
+
 
                         <div class="d-grid gap-2 d-md-flex justify-content-md-end mb-4">
                             <button type="submit" class="btn btn-primary" id="submitExam">
@@ -105,7 +113,7 @@ get_header('Exams');
                     // Get available exams
                     $stmt = $db->query(
                         "SELECT e.* FROM exams e 
-                         LEFT JOIN exam_results er ON er.exam_id = e.id AND er.user_id = ?
+                         LEFT JOIN exam_results er ON er.exam_id = e.id AND er.applicant_id  = ?
                          WHERE e.status = 'active' AND er.id IS NULL", 
                         [$user_id]
                     );

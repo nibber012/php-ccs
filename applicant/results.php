@@ -2,6 +2,7 @@
 require_once '../config/config.php';
 require_once '../classes/Auth.php';
 require_once '../includes/layout.php';
+require_once '../config/database.php';
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
@@ -19,10 +20,12 @@ try {
                 e.duration_minutes, DATE_FORMAT(er.created_at, '%M %d, %Y %h:%i %p') as completion_date
          FROM exam_results er
          JOIN exams e ON er.exam_id = e.id
-         WHERE er.user_id = ?
+         JOIN applicants a ON er.applicant_id = a.id  -- ✅ Ensure it matches applicants table
+         WHERE a.user_id = ?  -- ✅ Use applicants.user_id to filter correctly
          ORDER BY er.created_at DESC",
         [$user_id]
     );
+    
     $results = $stmt->fetchAll();
 } catch (Exception $e) {
     error_log("Results Error: " . $e->getMessage());

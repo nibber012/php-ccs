@@ -45,6 +45,7 @@ class Exam {
 
     public function getExamQuestions($exam_id) {
         $query = "SELECT * FROM questions WHERE exam_id = ? ORDER BY id";
+        error_log("DEBUG: Query - $query, Exam ID - $exam_id");
         $stmt = $this->conn->prepare($query);
         $stmt->execute([$exam_id]);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);

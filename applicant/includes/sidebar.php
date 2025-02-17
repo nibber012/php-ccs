@@ -15,24 +15,26 @@ $db = Database::getInstance();;
 
 try {
     // Get user data
-    $stmt = $db->query("SELECT * FROM users WHERE id = ?", [$user_id]);
+    $stmt = $db->query("SELECT * FROM users WHERE id = ?", [(int)$user_id]);
     $user = $stmt->fetch();
     
     // Get applicant data
-    $stmt = $db->query("SELECT status FROM applicants WHERE user_id = ?", [$user_id]);
+    $stmt = $db->query("SELECT progress_status AS status FROM applicants WHERE user_id = ?", [(int)$user_id]);
     $applicant = $stmt->fetch();
-    
+
     if (!$applicant) {
-        $db->query("INSERT INTO applicants (user_id, status) VALUES (?, 'registered')", [$user_id]);
+        $db->query("INSERT INTO applicants (user_id, progress_status) VALUES (?, 'registered')", [(int)$user_id]);
         $applicant = ['status' => 'registered'];
     }
 
     // Get exam stats
     $stmt = $db->query(
-        "SELECT COUNT(*) as total_exams, AVG(score) as avg_score 
-         FROM exam_results WHERE user_id = ?",
-        [$user_id]
+        "SELECT COUNT(*) as total_exams, 
+                (SUM(score) / SUM(passing_score)) * 100 as avg_score 
+         FROM exam_results WHERE applicant_id = ?",
+        [(int)$user_id]
     );
+    
     $exam_stats = $stmt->fetch();
 } catch (Exception $e) {
     error_log("Sidebar Error: " . $e->getMessage());
