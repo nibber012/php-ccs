@@ -10,6 +10,9 @@ if (!isset($_SESSION['user_id'])) {
     exit;
 }
 
+error_log("Session Data: " . print_r($_SESSION, true));
+
+
 $user_id = $_SESSION['user_id'];
 $db = Database::getInstance();;
 
@@ -114,7 +117,7 @@ get_header('Exams');
                     $stmt = $db->query(
                         "SELECT e.* FROM exams e 
                          LEFT JOIN exam_results er ON er.exam_id = e.id AND er.applicant_id  = ?
-                         WHERE e.status = 'active' AND er.id IS NULL", 
+                         WHERE e.status = 'published' AND er.id IS NULL", 
                         [$user_id]
                     );
                     $available_exams = $stmt->fetchAll();
