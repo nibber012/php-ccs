@@ -17,20 +17,34 @@ try {
     // Get exam results with exam details
     $stmt = $db->query(
         "SELECT er.*, e.title as exam_title, e.description as exam_description, 
-                e.duration_minutes, DATE_FORMAT(er.created_at, '%M %d, %Y %h:%i %p') as completion_date
+                e.duration_minutes, e.passing_score, 
+                DATE_FORMAT(er.created_at, '%M %d, %Y %h:%i %p') as completion_date
          FROM exam_results er
          JOIN exams e ON er.exam_id = e.id
-         JOIN applicants a ON er.applicant_id = a.id  -- ✅ Ensure it matches applicants table
-         WHERE a.user_id = ?  -- ✅ Use applicants.user_id to filter correctly
+         JOIN applicants a ON er.applicant_id = a.user_id
+         WHERE a.user_id = ?
          ORDER BY er.created_at DESC",
         [$user_id]
     );
     
+    
     $results = $stmt->fetchAll();
+
+    // Get exam statistics (total exams, average score)
+    $stmt = $db->query(
+        "SELECT COUNT(*) as total_exams, 
+                (SUM(score) / SUM(passing_score)) * 100 as avg_score 
+         FROM exam_results WHERE applicant_id = ?",
+        [$user_id]
+    );
+
+    $exam_stats = $stmt->fetch();
 } catch (Exception $e) {
     error_log("Results Error: " . $e->getMessage());
     $results = [];
+    $exam_stats = ['total_exams' => 0, 'avg_score' => 0];
 }
+
 
 get_header('My Results');
 ?>
@@ -59,9 +73,13 @@ get_header('My Results');
                                 <div class="card-body">
                                     <h5 class="card-title"><?php echo htmlspecialchars($result['exam_title']); ?></h5>
                                     
-                                    <div class="score-circle mb-3 <?php echo getScoreClass($result['score']); ?>">
-                                        <?php echo number_format($result['score'], 1); ?>%
-                                    </div>
+                                    <?php 
+$percentage = ($result['score'] / $result['passing_score']) * 100; 
+?>
+<div class="score-circle mb-3 <?php echo getScoreClass($percentage); ?>">
+    <?php echo number_format($percentage, 1); ?>%
+</div>
+
                                     
                                     <div class="exam-details">
                                         <p class="text-muted mb-2">
