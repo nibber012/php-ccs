@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 17, 2025 at 01:20 PM
+-- Generation Time: Feb 17, 2025 at 12:26 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -57,19 +57,7 @@ INSERT INTO `activity_logs` (`id`, `user_id`, `action`, `details`, `ip_address`,
 (14, 1, 'question_added', 'Added new question to exam ID: 1', '::1', '2025-02-17 11:19:14'),
 (15, 1, 'question_added', 'Added new question to exam ID: 1', '::1', '2025-02-17 11:19:52'),
 (16, 1, 'question_added', 'Added new question to exam ID: 1', '::1', '2025-02-17 11:20:31'),
-(17, 1, 'question_added', 'Added new question to exam ID: 1', '::1', '2025-02-17 11:21:06'),
-(18, 1, 'logout', 'User logged out', '::1', '2025-02-17 11:26:39'),
-(19, 5, 'login', 'User logged in successfully', '::1', '2025-02-17 11:27:04'),
-(20, 5, 'logout', 'User logged out', '::1', '2025-02-17 11:27:32'),
-(21, 1, 'login', 'User logged in successfully', '::1', '2025-02-17 11:28:48'),
-(22, 1, 'exam_publish', 'Exam (ID: 1) status changed to published', '::1', '2025-02-17 11:28:57'),
-(23, 5, 'login', 'User logged in successfully', '::1', '2025-02-17 11:29:09'),
-(24, 1, 'exam_created', 'Created new exam: Coding Exam (Part 2)', '::1', '2025-02-17 11:36:28'),
-(25, 1, 'question_added', 'Added new question to exam ID: 2', '::1', '2025-02-17 11:42:04'),
-(26, 1, 'question_added', 'Added new question to exam ID: 2', '::1', '2025-02-17 11:42:40'),
-(27, 1, 'question_added', 'Added new question to exam ID: 2', '::1', '2025-02-17 11:43:11'),
-(28, 1, 'question_added', 'Added new question to exam ID: 2', '::1', '2025-02-17 11:43:43'),
-(29, 1, 'exam_publish', 'Exam (ID: 2) status changed to published', '::1', '2025-02-17 11:44:01');
+(17, 1, 'question_added', 'Added new question to exam ID: 1', '::1', '2025-02-17 11:21:06');
 
 -- --------------------------------------------------------
 
@@ -170,22 +158,6 @@ CREATE TABLE `applicant_answers` (
   `submitted_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `applicant_answers`
---
-
-INSERT INTO `applicant_answers` (`id`, `applicant_id`, `exam_id`, `question_id`, `answer`, `is_correct`, `score`, `submitted_at`) VALUES
-(1, 5, 1, 1, 'To perform arithmetic and logical operations', 1, 10, '2025-02-17 11:30:07'),
-(2, 5, 1, 2, 'HTML', 1, 10, '2025-02-17 11:30:07'),
-(3, 5, 1, 3, 'Random Access Memory', 1, 10, '2025-02-17 11:30:07'),
-(4, 5, 1, 4, 'Star', 1, 10, '2025-02-17 11:30:08'),
-(5, 5, 1, 5, 'A set of instructions to solve a problem', 1, 10, '2025-02-17 11:30:08'),
-(6, 5, 1, 6, 'Structured Query Language', 1, 10, '2025-02-17 11:30:08'),
-(7, 5, 1, 7, 'Python', 1, 10, '2025-02-17 11:30:08'),
-(8, 5, 1, 8, 'Binary Digit', 1, 10, '2025-02-17 11:30:08'),
-(9, 5, 1, 9, 'Primary Key', 1, 10, '2025-02-17 11:30:08'),
-(10, 5, 1, 10, 'Google', 0, 0, '2025-02-17 11:30:08');
-
 -- --------------------------------------------------------
 
 --
@@ -261,8 +233,7 @@ CREATE TABLE `exams` (
 --
 
 INSERT INTO `exams` (`id`, `title`, `description`, `type`, `part`, `duration_minutes`, `passing_score`, `status`, `created_by`, `created_at`, `updated_at`, `instructions`) VALUES
-(1, 'General Exam', 'The General Exam for the CCS department is crucial in assessing your eligibility to apply for courses. Your performance on this test will play a significant role in determining your suitability for the program. Please proceed with caution. Good Luck!', 'mcq', '1', 60, 75, 'published', 1, '2025-02-17 11:12:00', '2025-02-17 11:28:57', 'Avoid logging out during the examination. You are given 1 hour for this exam. Should the time ran out you will not be able to take the exam anymore and will be automatically marked as failed'),
-(2, 'Coding Exam', 'The Coding Exam is a critical assessment for aspiring IT/CS students. It evaluates your problem-solving abilities, programming skills, and logical thinking. This exam plays a key role in determining your eligibility to enroll in courses under the Department of Computer Science.', 'coding', '2', 120, 75, 'published', 1, '2025-02-17 11:36:28', '2025-02-17 11:44:01', 'Avoid logging out during the examination. You are given 1 hour for this exam. Should the time ran out you will not be able to take the exam anymore and will be automatically marked as failed');
+(1, 'General Exam', 'The General Exam for the CCS department is crucial in assessing your eligibility to apply for courses. Your performance on this test will play a significant role in determining your suitability for the program. Please proceed with caution. Good Luck!', 'mcq', '1', 60, 75, 'draft', 1, '2025-02-17 11:12:00', '2025-02-17 11:12:00', 'Avoid logging out during the examination. You are given 1 hour for this exam. Should the time ran out you will not be able to take the exam anymore and will be automatically marked as failed');
 
 -- --------------------------------------------------------
 
@@ -283,13 +254,6 @@ CREATE TABLE `exam_results` (
   `created_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `exam_results`
---
-
-INSERT INTO `exam_results` (`id`, `applicant_id`, `exam_id`, `score`, `passing_score`, `status`, `started_at`, `completed_at`, `completion_time`, `created_at`) VALUES
-(1, 5, 1, 90, 75, 'pass', '2025-02-17 19:29:13', '2025-02-17 11:30:07', 14, '2025-02-17 19:30:08');
-
 -- --------------------------------------------------------
 
 --
@@ -302,13 +266,6 @@ CREATE TABLE `exam_start_times` (
   `exam_id` int(11) NOT NULL,
   `started_at` datetime DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `exam_start_times`
---
-
-INSERT INTO `exam_start_times` (`id`, `applicant_id`, `exam_id`, `started_at`) VALUES
-(1, 5, 1, '2025-02-17 19:29:13');
 
 -- --------------------------------------------------------
 
@@ -412,11 +369,7 @@ INSERT INTO `questions` (`id`, `exam_id`, `question_text`, `question_type`, `poi
 (7, 1, 'Which of the following is an example of a high-level programming language?', 'multiple_choice', 10, NULL, NULL, NULL, 'Python is a high-level programming language known for its readability and simplicity. Assembly and machine code are low-level languages, and binary is a form of data representation.', '[\"Assembly\",\"Machine code\",\"Python\",\"Binary\"]', '2', '2025-02-17 11:19:14', '2025-02-17 11:19:14'),
 (8, 1, 'What does the term \'bit\' stand for?', 'multiple_choice', 10, NULL, NULL, NULL, 'A \'bit\' stands for binary digit, which is the most basic unit of data in computing, representing a 0 or 1.', '[\"Binary Information Technique\",\"Binary Digit\",\"Binary Integer\",\"Binary Internal Translation\"]', '1', '2025-02-17 11:19:51', '2025-02-17 11:19:51'),
 (9, 1, 'Which of the following is used to uniquely identify a record in a database table?', 'multiple_choice', 10, NULL, NULL, NULL, 'A primary key is a unique identifier for a record in a database table. It ensures that each record can be uniquely identified.', '[\"Primary Key\",\"Foreign Key\",\"Composite Key\",\"Secondary Key\"]', '0', '2025-02-17 11:20:31', '2025-02-17 11:20:31'),
-(10, 1, 'Which of the following is a type of operating system?', 'multiple_choice', 10, NULL, NULL, NULL, 'Windows is a type of operating system developed by Microsoft. It provides a graphical user interface (GUI) and manages hardware and software resources on a computer.', '[\"Windows\",\"Google\",\"Python\",\"Facebook\"]', '0', '2025-02-17 11:21:06', '2025-02-17 11:21:06'),
-(11, 2, 'Calculate the sum of two integers', 'coding', 25, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int a, b;\r\n    cout << \"Enter two integers: \";\r\n    cin >> a >> b;\r\n    // Missing code here to calculate the sum and display it\r\n    return 0;\r\n}\r\n', NULL, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int a, b;\r\n    cout << \"Enter two integers: \";\r\n    cin >> a >> b;\r\n    int sum = a + b;\r\n    cout << \"The sum is: \" << sum << endl;\r\n    return 0;\r\n}\r\n', 'Explanation: The missing part was to calculate the sum (int sum = a + b;) and display it (cout << \"The sum is: \" << sum << endl;).', NULL, NULL, '2025-02-17 11:42:04', '2025-02-17 11:42:04'),
-(12, 2, 'Determine if a number is even or odd', 'coding', 25, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int num;\r\n    cout << \"Enter an integer: \";\r\n    cin >> num;\r\n    // Missing condition to check if the number is even or odd\r\n    return 0;\r\n}\r\n', NULL, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int num;\r\n    cout << \"Enter an integer: \";\r\n    cin >> num;\r\n    if (num % 2 == 0) {\r\n        cout << num << \" is even.\" << endl;\r\n    } else {\r\n        cout << num << \" is odd.\" << endl;\r\n    }\r\n    return 0;\r\n}\r\n', 'Explanation: The missing part was the condition to check if the number is even or odd (if (num % 2 == 0) { cout << num << \" is even.\" << endl; } else { cout << num << \" is odd.\" << endl; }).', NULL, NULL, '2025-02-17 11:42:40', '2025-02-17 11:42:40'),
-(13, 2, 'Find the factorial of a number', 'coding', 25, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int n;\r\n    cout << \"Enter a positive integer: \";\r\n    cin >> n;\r\n    long long factorial = 1;\r\n    // Missing loop to calculate the factorial\r\n    return 0;\r\n}', NULL, '#include <iostream>\r\nusing namespace std;\r\n\r\nint main() {\r\n    int n;\r\n    cout << \"Enter a positive integer: \";\r\n    cin >> n;\r\n    long long factorial = 1;\r\n    for (int i = 1; i <= n; ++i) {\r\n        factorial *= i;\r\n    }\r\n    cout << \"Factorial of \" << n << \" = \" << factorial << endl;\r\n    return 0;\r\n}', 'Explanation: The missing part was the loop to calculate the factorial (for (int i = 1; i <= n; ++i) { factorial *= i; }) and display it (cout << \"Factorial of \" << n << \" = \" << factorial << endl;).', NULL, NULL, '2025-02-17 11:43:11', '2025-02-17 11:43:11'),
-(14, 2, 'Check if a string is a palindrome', 'coding', 25, '#include <iostream>\r\n#include <string>\r\nusing namespace std;\r\n\r\nint main() {\r\n    string str;\r\n    cout << \"Enter a string: \";\r\n    cin >> str;\r\n    int len = str.length();\r\n    bool isPalindrome = true;\r\n    // Missing loop to check if the string is a palindrome\r\n    return 0;\r\n}', NULL, '#include <iostream>\r\n#include <string>\r\nusing namespace std;\r\n\r\nint main() {\r\n    string str;\r\n    cout << \"Enter a string: \";\r\n    cin >> str;\r\n    int len = str.length();\r\n    bool isPalindrome = true;\r\n    for (int i = 0; i < len / 2; ++i) {\r\n        if (str[i] != str[len - 1 - i]) {\r\n            isPalindrome = false;\r\n            break;\r\n        }\r\n    }\r\n    if (isPalindrome) {\r\n        cout << str << \" is a palindrome.\" << endl;\r\n    } else {\r\n        cout << str << \" is not a palindrome.\" << endl;\r\n    }\r\n    return 0;\r\n}', 'Explanation: The missing part was the loop to check if the string is a palindrome (for (int i = 0; i < len / 2; ++i) { if (str[i] != str[len - 1 - i]) { isPalindrome = false; break; } }) and display the result (if (isPalindrome) { cout << str << \" is a palindrome.\" << endl; } else { cout << str << \" is not a palindrome.\" << endl; }).', NULL, NULL, '2025-02-17 11:43:43', '2025-02-17 11:43:43');
+(10, 1, 'Which of the following is a type of operating system?', 'multiple_choice', 10, NULL, NULL, NULL, 'Windows is a type of operating system developed by Microsoft. It provides a graphical user interface (GUI) and manages hardware and software resources on a computer.', '[\"Windows\",\"Google\",\"Python\",\"Facebook\"]', '0', '2025-02-17 11:21:06', '2025-02-17 11:21:06');
 
 -- --------------------------------------------------------
 
@@ -640,7 +593,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `activity_logs`
 --
 ALTER TABLE `activity_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=30;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `admins`
@@ -664,7 +617,7 @@ ALTER TABLE `applicants`
 -- AUTO_INCREMENT for table `applicant_answers`
 --
 ALTER TABLE `applicant_answers`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `application_status`
@@ -688,19 +641,19 @@ ALTER TABLE `email_logs`
 -- AUTO_INCREMENT for table `exams`
 --
 ALTER TABLE `exams`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `exam_results`
 --
 ALTER TABLE `exam_results`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `exam_start_times`
 --
 ALTER TABLE `exam_start_times`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `exam_status`
@@ -730,7 +683,7 @@ ALTER TABLE `notifications`
 -- AUTO_INCREMENT for table `questions`
 --
 ALTER TABLE `questions`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `status_history`

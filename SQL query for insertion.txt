@@ -1,0 +1,159 @@
+SET FOREIGN_KEY_CHECKS = 0;
+
+-- 🔹 Drop foreign key constraints before truncation
+ALTER TABLE exam_start_times DROP FOREIGN KEY fk_exam_start_applicant;
+ALTER TABLE applicants DROP FOREIGN KEY applicants_ibfk_3;
+ALTER TABLE applicants DROP FOREIGN KEY applicants_ibfk_1; -- Allow truncation of users
+ALTER TABLE interview_scores DROP FOREIGN KEY interview_scores_ibfk_1;
+ALTER TABLE applicant_answers DROP FOREIGN KEY applicant_answers_ibfk_2;
+ALTER TABLE exam_results DROP FOREIGN KEY exam_results_ibfk_2;
+ALTER TABLE questions DROP FOREIGN KEY questions_ibfk_1;
+ALTER TABLE applicant_answers DROP FOREIGN KEY applicant_answers_ibfk_3;
+ALTER TABLE activity_logs DROP FOREIGN KEY activity_logs_ibfk_1;
+ALTER TABLE admins DROP FOREIGN KEY admins_ibfk_1; -- Allow truncation of users
+ALTER TABLE announcements DROP FOREIGN KEY announcements_ibfk_1; -- Allow truncation of users
+ALTER TABLE exams DROP FOREIGN KEY exams_ibfk_1; -- Allow truncation of users
+ALTER TABLE interview_schedules DROP FOREIGN KEY interview_schedules_ibfk_2; -- Allow truncation of users
+ALTER TABLE notifications DROP FOREIGN KEY notifications_ibfk_1; -- Allow truncation of users
+ALTER TABLE status_history DROP FOREIGN KEY status_history_ibfk_1; -- Allow truncation of users
+
+-- 🔹 Truncate child tables first to avoid foreign key conflicts
+TRUNCATE TABLE activity_logs;
+TRUNCATE TABLE applicant_answers;
+TRUNCATE TABLE questions;
+TRUNCATE TABLE exam_results;
+TRUNCATE TABLE interview_scores;
+TRUNCATE TABLE exam_start_times;
+TRUNCATE TABLE application_status;
+TRUNCATE TABLE notifications; -- No longer blocked by notifications_ibfk_1
+TRUNCATE TABLE status_history; -- No longer blocked by status_history_ibfk_1
+
+-- 🔹 Now truncate dependent tables
+TRUNCATE TABLE interview_schedules; -- No longer blocked by interview_schedules_ibfk_2
+TRUNCATE TABLE applicants; -- No longer blocked by applicants_ibfk_1
+TRUNCATE TABLE exam_status;
+TRUNCATE TABLE exams; -- No longer blocked by exams_ibfk_1
+TRUNCATE TABLE users; -- No longer blocked by all constraints on users
+
+-- 🔹 Truncate the remaining tables
+TRUNCATE TABLE admins;
+TRUNCATE TABLE announcements;
+TRUNCATE TABLE courses;
+TRUNCATE TABLE email_logs;
+TRUNCATE TABLE super_admins;
+
+-- 🔹 Recreate the foreign key constraints
+ALTER TABLE exam_start_times ADD CONSTRAINT fk_exam_start_applicant 
+FOREIGN KEY (applicant_id) REFERENCES applicants(user_id);
+
+ALTER TABLE applicants ADD CONSTRAINT applicants_ibfk_1 
+FOREIGN KEY (user_id) REFERENCES users(id);
+
+ALTER TABLE applicants ADD CONSTRAINT applicants_ibfk_3 
+FOREIGN KEY (exam_status_id) REFERENCES exam_status(id);
+
+ALTER TABLE interview_scores ADD CONSTRAINT interview_scores_ibfk_1 
+FOREIGN KEY (interview_id) REFERENCES interview_schedules(id);
+
+ALTER TABLE applicant_answers ADD CONSTRAINT applicant_answers_ibfk_2 
+FOREIGN KEY (exam_id) REFERENCES exams(id);
+
+ALTER TABLE exam_results ADD CONSTRAINT exam_results_ibfk_2 
+FOREIGN KEY (exam_id) REFERENCES exams(id);
+
+ALTER TABLE questions ADD CONSTRAINT questions_ibfk_1 
+FOREIGN KEY (exam_id) REFERENCES exams(id);
+
+ALTER TABLE applicant_answers ADD CONSTRAINT applicant_answers_ibfk_3 
+FOREIGN KEY (question_id) REFERENCES questions(id);
+
+ALTER TABLE activity_logs ADD CONSTRAINT activity_logs_ibfk_1 
+FOREIGN KEY (user_id) REFERENCES users(id);
+
+-- 🔹 Restore the foreign keys for admins, announcements, exams, interview_schedules, notifications, and status_history
+ALTER TABLE admins ADD CONSTRAINT admins_ibfk_1 
+FOREIGN KEY (user_id) REFERENCES users(id);
+
+ALTER TABLE announcements ADD CONSTRAINT announcements_ibfk_1 
+FOREIGN KEY (created_by) REFERENCES users(id);
+
+ALTER TABLE exams ADD CONSTRAINT exams_ibfk_1 
+FOREIGN KEY (created_by) REFERENCES users(id);
+
+ALTER TABLE interview_schedules ADD CONSTRAINT interview_schedules_ibfk_2 
+FOREIGN KEY (interviewer_id) REFERENCES users(id);
+
+ALTER TABLE notifications ADD CONSTRAINT notifications_ibfk_1 
+FOREIGN KEY (user_id) REFERENCES users(id);
+
+ALTER TABLE status_history ADD CONSTRAINT status_history_ibfk_1 
+FOREIGN KEY (user_id) REFERENCES users(id);
+
+SET FOREIGN_KEY_CHECKS = 1;
+
+-- 🔹 Insert Super Admin User
+INSERT INTO users (email, password, first_name, last_name, role, status, created_at, updated_by)
+VALUES ('superadmin@ccs.edu.ph', 
+        '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 
+        'Gojo', 
+        'Satoru', 
+        'super_admin', 
+        'active', 
+        NOW(), 
+        69420);
+
+SET @super_admin_id = LAST_INSERT_ID(); -- Get the ID of the inserted super admin
+
+-- 🔹 Insert 3 Admin Users
+INSERT INTO users (email, password, first_name, last_name, role, status, created_at, updated_by)
+VALUES 
+    ('test_admin1@css.edu.ph', '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Utahime', 'Iori', 'admin', 'active', NOW(), @super_admin_id),
+    ('test_admin2@css.edu.ph', '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Akari', 'Naita', 'admin', 'active', NOW(), @super_admin_id),
+    ('test_admin3@css.edu.ph', '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Kento', 'Nanami', 'admin', 'active', NOW(), @super_admin_id);
+
+-- Retrieve the newly inserted admin user IDs
+SET @admin1_id = (SELECT id FROM users WHERE email = 'test_admin1@css.edu.ph');
+SET @admin2_id = (SELECT id FROM users WHERE email = 'test_admin2@css.edu.ph');
+SET @admin3_id = (SELECT id FROM users WHERE email = 'test_admin3@css.edu.ph');
+
+-- 🔹 Insert Admin Profiles
+INSERT INTO admins (user_id, first_name, last_name, department)
+VALUES 
+    (@admin1_id, 'Utahime', 'Iori', 'CCS'),
+    (@admin2_id, 'Akari', 'Naita', 'CCS'),
+    (@admin3_id, 'Kento', 'Nanami', 'CCS');
+
+-- 🔹 Log activity for admin creation
+INSERT INTO activity_logs (user_id, action, details, created_at)
+VALUES 
+    (@super_admin_id, 'admin_created', 'Created new admin account for Utahime Iori (test_admin1@css.edu.ph)', NOW()),
+    (@super_admin_id, 'admin_created', 'Created new admin account for Akari Naita (test_admin2@css.edu.ph)', NOW()),
+    (@super_admin_id, 'admin_created', 'Created new admin account for Kento Nanami (test_admin3@css.edu.ph)', NOW());
+
+
+-- Insert 10 Applicants into the users table
+INSERT INTO users (email, password, first_name, last_name, role, status, created_at, updated_by)
+VALUES
+('test_applicant1@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'John', 'Doe', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant2@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Jane', 'Smith', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant3@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Michael', 'Johnson', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant4@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Emily', 'Davis', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant5@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Daniel', 'Martinez', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant6@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Olivia', 'Anderson', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant7@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'William', 'Brown', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant8@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Sophia', 'Wilson', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant9@gmail.com',  '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'James', 'Harris', 'applicant', 'approved', NOW(), 69420),
+    ('test_applicant10@gmail.com', '$2y$10$GutilQeoQQlOqddBN.eOcuz2JDM4Xw8CGJMaTV8ANHBfms7OGiqfG', 'Isabella', 'Miller', 'applicant', 'approved', NOW(), 69420);
+
+-- Insert into applicants table with generated applicant numbers
+INSERT INTO applicants (user_id, applicant_number, first_name, last_name, contact_number, course, preferred_course, progress_status)
+SELECT
+    id, 
+    CONCAT(YEAR(NOW()), LPAD(ROW_NUMBER() OVER (), 4, '0')), 
+    first_name, 
+    last_name, 
+    CONCAT('09', FLOOR(RAND() * 900000000 + 100000000)), 
+    CASE WHEN RAND() > 0.5 THEN 'BSIT' ELSE 'BSCS' END,
+    CASE WHEN RAND() > 0.5 THEN 'BS Information Technology' ELSE 'BS Computer Science' END,
+    'registered'
+FROM users WHERE email LIKE 'test_applicant%@gmail.com';

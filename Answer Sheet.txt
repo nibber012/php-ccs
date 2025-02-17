@@ -1,0 +1,12 @@
+Correct Answers
+
+1. b) To perform arithmetic and logical operations
+2. c) HTML
+3. a) Random Access Memory
+4. a) Star
+.5 b) A set of instructions to solve a problem
+.6 a) Structured Query Language
+7. c) Python
+8. b) Binary Digit
+9. a) Primary Key
+10. a) Windows
